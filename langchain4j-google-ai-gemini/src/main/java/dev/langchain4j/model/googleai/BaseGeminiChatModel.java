@@ -50,6 +50,7 @@ abstract class BaseGeminiChatModel {
     protected final List<GeminiSafetySetting> safetySettings;
     protected final List<ChatModelListener> listeners;
     protected final Integer maxRetries;
+    protected final GeminiThinkingConfig thinkingConfig;
 
     protected BaseGeminiChatModel(
             String apiKey,
@@ -67,7 +68,8 @@ abstract class BaseGeminiChatModel {
             Boolean logRequestsAndResponses,
             List<GeminiSafetySetting> safetySettings,
             List<ChatModelListener> listeners,
-            Integer maxRetries
+            Integer maxRetries,
+            GeminiThinkingConfig thinkingConfig
     ) {
         this.apiKey = ensureNotBlank(apiKey, "apiKey");
         this.modelName = ensureNotBlank(modelName, "modelName");
@@ -83,6 +85,7 @@ abstract class BaseGeminiChatModel {
         this.responseFormat = responseFormat;
         this.listeners = listeners == null ? emptyList() : new ArrayList<>(listeners);
         this.maxRetries = getOrDefault(maxRetries, 3);
+        this.thinkingConfig = thinkingConfig;
         this.geminiService = new GeminiService(
                 getOrDefault(logRequestsAndResponses, false) ? log : null,
                 getOrDefault(timeout, ofSeconds(60))
@@ -115,6 +118,7 @@ abstract class BaseGeminiChatModel {
                         .temperature(getOrDefault(requestParameters.temperature(), this.temperature))
                         .topK(getOrDefault(requestParameters.topK(), this.topK))
                         .topP(getOrDefault(requestParameters.topP(), this.topP))
+                        .thinkingConfig(this.thinkingConfig)
                         .build())
                 .safetySettings(this.safetySettings)
                 .tools(FunctionMapper.fromToolSepcsToGTool(toolSpecifications, this.allowCodeExecution))
